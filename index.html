@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project 1</title>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
+    <style>
+        .gridlines line {
+            stroke: #bbb;
+        }
+
+        .gridlines .domain {
+            stroke: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <p>
+            The annual process of creating NASA's budget begins with a detailed
+            budget proposal from the White House, known as the President's Budget
+            Request (PBR), typically submitted in February. This proposal is the
+            result of negotiations within NASA and with the White House, reflecting
+            the President's priorities and policy direction. While the PBR does not
+            have the force of law, it shapes the funding debate in Congress.
+            Congressional committees then craft legislation to fund NASA, deciding
+            whether to accept or modify the President's proposals. This legislation
+            must be passed and signed into law before the start of the fiscal year
+            on October 1, or NASA loses its spending authority, affecting its
+            operations and obligations.
+        </p>
+        <p>
+            Below is line plot of fiscal years from 1959 to 2022 against budget in
+            millions of USD (adjusted for infaltion to 2022 USD). The dotted line is
+            the requested amount, and the other is the actual or recived amount.
+        </p>
+    </div>
+    <svg id="budget" width="800" height="500"></svg>
+    <script>
+        {
+            const svg = d3.select("svg#budget");
+
+            const svgWidth = svg.attr("width");
+            const svgHeight = svg.attr("height");
+            const margins = { top: 50, right: 10, bottom: 75, left: 75 };
+
+            const chartWidth = svgWidth - margins.left - margins.right;
+            const chartHeight = svgHeight - margins.top - margins.bottom;
+
+            const chartTitle = svg.append("text")
+                .attr("x", (svgWidth / 2))
+                .attr("y", 25)
+                .attr("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("Inflation-Adjusted Budget by Fiscal Year");
+
+            const xLabel = svg.append("text")
+                .attr("class", "x-axis-label")
+                .attr("x", svgWidth / 2)
+                .attr("y", svgHeight - 20) // Adjust the vertical position as needed
+                .style("text-anchor", "middle")
+                .text("Years since 1960");
+
+            const yLabel = svg.append("text")
+                .attr("class", "y-axis-label")
+                .attr("x", -svgHeight / 2)
+                .attr("y", 10) // Adjust the horizontal position as needed
+                .attr("transform", "rotate(-90)")
+                .style("text-anchor", "middle")
+                .text("Inflation-Adjusted Budget (in millions)");
+
+            const annotations = svg.append("g").attr("id", "annotations");
+
+            const chartArea = svg
+                .append("g")
+                .attr("id", "chart")
+                .attr("transform", `translate(${margins.left},${margins.top})`);
+
+            const budget_data = d3.csv("budget_data.csv").then((data) => {
+                const timeParser = d3.timeParse("%Y");
+                data.forEach((d) => {
+                    d.actual = +d.actual.replace("$", "").replace(",", "");
+                    if (d.request === "") {
+                        d.request = 0;
+                    } else {
+                        d.request = +d.request.replace("$", "").replace(",", "");
+                    }
+                    d.year = timeParser(d.year);
+                });
+                data = data.filter((d) => d.request != 0);
+
+                const yearExtent = d3.extent(data, (d) => d.year);
+                const requestExtent = d3.extent(data, (d) => d.request);
+                const actualExtent = d3.extent(data, (d) => d.actual);
+                const budgetExtent = [
+                    Math.min(...requestExtent, ...actualExtent),
+                    Math.max(...requestExtent, ...actualExtent),
+                ];
+
+                const xScale = d3
+                    .scaleTime()
+                    .domain(yearExtent)
+                    .range([0, chartWidth]);
+
+                const yScale = d3
+                    .scaleLinear()
+                    .domain(budgetExtent)
+                    .range([chartHeight, 0]);
+
+                let leftAxis = d3.axisLeft(yScale).tickFormat(d3.format("$,"));
+
+                annotations
+                    .append("g")
+                    .attr("class", "y axis")
+                    .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+                    .call(leftAxis);
+
+                let leftGridlines = d3
+                    .axisLeft(yScale)
+                    .tickFormat("")
+                    .tickSize(-chartWidth - 10);
+
+                annotations
+                    .append("g")
+                    .attr("class", "y gridlines")
+                    .attr("transform", `translate(${margins.left - 10},${margins.top})`)
+                    .call(leftGridlines);
+
+                let bottomAxis = d3.axisBottom(xScale);
+
+                annotations
+                    .append("g")
+                    .attr("class", "x axis")
+                    .attr(
+                        "transform",
+                        `translate(${margins.left},${margins.top + chartHeight + 10})`
+                    )
+                    .call(bottomAxis);
+
+                let bottomGridlines = d3
+                    .axisBottom(xScale)
+                    .tickFormat("")
+                    .tickSize(-chartHeight - 10);
+
+                annotations
+                    .append("g")
+                    .attr("class", "x gridlines")
+                    .attr(
+                        "transform",
+                        `translate(${margins.left},${margins.top + chartHeight + 10})`
+                    )
+                    .call(bottomGridlines);
+
+                const lineGenRequest = d3
+                    .line()
+                    .x((d) => xScale(d.year))
+                    .y((d) => yScale(d.request))
+                    .curve(d3.curveMonotoneX);
+
+                const appendLineRequest = chartArea
+                    .append("path")
+                    .datum(data)
+                    .attr("class", "line request")
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                    .style("stroke-dasharray", "3 5")
+                    .attr("d", lineGenRequest);
+
+                const addPointsRequest = chartArea
+                    .selectAll("circle.point.request")
+                    .data(data)
+                    .join("circle")
+                    .attr("class", "point request")
+                    .attr("cx", (d) => xScale(d.year))
+                    .attr("cy", (d) => yScale(d.request))
+                    .attr("r", 3)
+                    .attr("fill", "black")
+                    .attr("opacity", 0.5);
+
+                const lineGenActual = d3
+                    .line()
+                    .x((d) => xScale(d.year))
+                    .y((d) => yScale(d.actual))
+                    .curve(d3.curveMonotoneX);
+
+                const appendLineActual = chartArea
+                    .append("path")
+                    .datum(data)
+                    .attr("class", "line actual")
+                    .attr("fill", "none")
+                    .attr("stroke", "black")
+                    .attr("stroke-width", 1)
+                    .attr("d", lineGenActual);
+
+                const addPointsActual = chartArea
+                    .selectAll("circle.point.actual")
+                    .data(data)
+                    .join("circle")
+                    .attr("class", "point actual")
+                    .attr("cx", (d) => xScale(d.year))
+                    .attr("cy", (d) => yScale(d.actual))
+                    .attr("r", 3)
+                    .attr("fill", "black")
+                    .attr("opacity", 0.5);
+
+                chartArea
+                    .selectAll("rect.congress")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("x", (d) => xScale(d.year) - 1.5)
+                    .attr("y", 0)
+                    .attr("width", 3)
+                    .attr("height", chartHeight)
+                    .attr("fill", (d) => (d.congress === "D" ? "blue" : "red"))
+                    .attr("opacity", 0.2);
+
+                svg.append("circle").attr("cx", 600).attr("cy", 200).attr("r", 6).style("fill", "#69b3a2")
+            });
+        }
+    </script>
+</body>
+
+</html>
