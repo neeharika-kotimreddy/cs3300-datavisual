@@ -11,7 +11,7 @@ The visualization tells the story of NASA's budgetary process, starting from the
 ### Dependencies
 
 Before running the project, ensure you have:
-- A modern web browser (e.g., Chrome, Firefox).
+- A modern web browser.
 - Access to the following files (included in the repo):
   - `budget_data.csv`
   - `budget_history_inflation_adj.csv`
