@@ -1,6 +1,6 @@
 # NASA Planetary Science Budget Visualization
 
-This project visualizes NASA's annual planetary science budget from 1959 to 2022, adjusted for inflation, with a focus on the differences between the budget requested and the actual budget received. It highlights the political influence on funding through a clear, interactive D3.js visualization. This is a project (P1) for the class CS 3300: Data-Driven Web Applications, which I took at Cornell in the fall 2023 semester.
+This project visualizes NASA's annual planetary science budget from 1959 to 2022, adjusted for inflation, with a focus on the differences between the budget requested and the actual budget received. It highlights the political influence on funding through a clear, interactive D3.js visualization. This is a project for the class CS 3300: Data-Driven Web Applications, which I took at Cornell in the fall 2023 semester.
 
 ## Description
 
