@@ -6,6 +6,8 @@ This project visualizes NASA's annual planetary science budget from 1959 to 2022
 
 The visualization tells the story of NASA's budgetary process, starting from the President's Budget Request (PBR) to its approval by Congress. It showcases how political affiliation and negotiations shape the final budget. The interactive plot features dotted lines for requested budgets, solid lines for actual budgets, and red and blue transparent bars to represent Congressional political affiliations for each fiscal year. The visualization enables users to explore trends, understand funding gaps, and identify patterns influenced by political leadership.
 
+--- 
+
 ## Getting Started
 
 ### Dependencies
@@ -31,6 +33,8 @@ Before running the project, ensure you have:
 2. Interact with the visualization to explore budget trends and political affiliations.
 3. Use the following steps to preprocess data:
    - Run `data.py` to clean and organize the raw datasets.
+
+--- 
 
 ## Authors
 * Amad Kabir
